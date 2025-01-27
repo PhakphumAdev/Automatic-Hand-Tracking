@@ -1,13 +1,13 @@
 # part 1
 import cv2
 import numpy as np
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from sam2 import SamVideoPredictor  # Assuming this is the correct import
-import torch
+#import mediapipe as mp
+#from mediapipe.tasks import python
+#from mediapipe.tasks.python import vision
+#from sam2 import SamVideoPredictor  # Assuming this is the correct import
+#import torch
 import argparse
-from sam2.build_sam import build_sam2_video_predictor
+#from sam2.build_sam import build_sam2_video_predictor
 import os
 
 def detect_hands(image):
