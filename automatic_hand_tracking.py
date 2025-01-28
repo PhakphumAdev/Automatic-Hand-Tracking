@@ -79,6 +79,7 @@ def track_hands(input_video_path, output_video_path):
     """
     PART 2: Track hands in a video and overlay masks using SAM 2
     """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     video2image(input_video_path)
     sam2_checkpoint = "../checkpoints/sam2.1_hiera_large.pt"
     model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
