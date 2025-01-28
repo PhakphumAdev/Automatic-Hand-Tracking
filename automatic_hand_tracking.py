@@ -135,6 +135,14 @@ def track_hands(input_video_path, output_video_path):
     plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
     show_points(points, labels, plt.gca())
     show_mask((out_mask_logits[0] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_ids[0])
+# Save to file instead of showing
+    plt.savefig(
+        os.path.join(output_dir, f"frame_{frame_idx:04d}.png"),  # Pad frame index to 4 digits
+        bbox_inches='tight',  # Prevent cropped borders
+        dpi=150  # Adjust resolution
+    )
+    plt.close()  # Free memory by closing the figure
+    plt.savefig("output.jpg")  # JPEG
 
     # Visualize the results
     #plt.figure(figsize=(9, 6))
