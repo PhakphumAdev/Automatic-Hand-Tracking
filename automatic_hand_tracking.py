@@ -107,11 +107,19 @@ def track_hands(input_video_path, output_video_path):
     frame = cv2.imread(frame_path)
 
     # Detect hands and refine the annotations for frame 0
-    num_hands, prompt = detect_hands(frame_path)  # Assume this function gives hand points
-    points = np.array(prompt, dtype=np.float32)  # Detected hand points
-    labels = np.array([1] * len(points), np.int32)  # Positive labels for the hands
-    prompts = {i: (np.array([p], dtype=np.float32), np.array([1], np.int32)) for i, p in enumerate(points)}
+    num_hands, hand_landmarks = detect_hands(frame_path)  # hand_landmarks shape: (num_hands, 21, 2)
 
+    # Reshape to [N, 2] where N = num_hands * 21
+    points = hand_landmarks.reshape(-1, 2).astype(np.float32)  # Shape: (num_hands * 21, 2)
+    labels = np.ones(points.shape[0], dtype=np.int32)  # Shape: (num_hands * 21,)
+
+    # (Optional) If you want per-hand interaction (e.g., track each hand separately):
+    prompts = {
+        i: (hand.astype(np.float32), np.ones(21, dtype=np.int32)) 
+        for i, hand in enumerate(hand_landmarks)
+    }
+
+    # Pass all points and labels to SAM
     _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
         inference_state=inference_state,
         frame_idx=frame_idx,
@@ -119,7 +127,6 @@ def track_hands(input_video_path, output_video_path):
         points=points,
         labels=labels,
     )
-
     # Visualize the results
     plt.figure(figsize=(9, 6))
     plt.title(f"Frame {frame_idx}")
