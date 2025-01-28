@@ -20,10 +20,15 @@ def detect_hands(input_image):
     image = mp.Image.create_from_file(input_image)
     detection_result = detector.detect(image)
 
+    # Load image and get dimensions
+    image = mp.Image.create_from_file(input_image)
+    image_width = image.width  # Get pixel width
+    image_height = image.height  # Get pixel height
+
+    # Convert normalized coordinates to pixel coordinates
     hand_landmarks = []
     for hand in detection_result.hand_landmarks:
-    # Convert each hand's landmarks to a NumPy array
-        landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand])
+        landmarks = np.array([[lm.x * image_width, lm.y * image_height] for lm in hand])  # x, y in pixels
         hand_landmarks.append(landmarks)
     
     num_hands = len(detection_result.hand_landmarks)
