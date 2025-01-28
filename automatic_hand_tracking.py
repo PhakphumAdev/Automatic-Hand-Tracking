@@ -28,8 +28,9 @@ def detect_hands(input_image):
     # Convert normalized coordinates to pixel coordinates
     hand_landmarks = []
     for hand in detection_result.hand_landmarks:
-        landmarks = np.array([[lm.x * image_width, lm.y * image_height] for lm in hand])  # x, y in pixels
+        landmarks = np.array([[int(lm.x * image_width), int(lm.y * image_height)] for lm in hand])  # Ensure integer pixel coordinates
         hand_landmarks.append(landmarks)
+
     
     num_hands = len(detection_result.hand_landmarks)
     return num_hands, np.array(hand_landmarks)
