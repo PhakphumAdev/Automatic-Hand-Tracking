@@ -127,16 +127,23 @@ def track_hands(input_video_path, output_video_path):
         points=points,
         labels=labels,
     )
-    # Visualize the results
+    # show the results on the current (interacted) frame
     plt.figure(figsize=(9, 6))
-    plt.title(f"Frame {frame_idx}")
-    plt.imshow(Image.open(frame_path))
+    plt.title(f"frame {frame_idx}")
+    plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
     show_points(points, labels, plt.gca())
-    for i, out_obj_id in enumerate(out_obj_ids):
-        show_points(*prompts[out_obj_id], plt.gca())
-        show_mask((out_mask_logits[i] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_id)
+    show_mask((out_mask_logits[0] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_ids[0])
 
-    plt.show()
+    # Visualize the results
+    #plt.figure(figsize=(9, 6))
+    #plt.title(f"Frame {frame_idx}")
+    #plt.imshow(Image.open(frame_path))
+    #show_points(points, labels, plt.gca())
+    #for i, out_obj_id in enumerate(out_obj_ids):
+    #    show_points(*prompts[out_obj_id], plt.gca())
+    #    show_mask((out_mask_logits[i] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_id)
+
+    #plt.show()
 
 def main():
     parser = argparse.ArgumentParser()
