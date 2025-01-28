@@ -4,13 +4,12 @@ import numpy as np
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from sam2 import SamVideoPredictor  # Assuming this is the correct import
 import torch
 import argparse
 from sam2.build_sam import build_sam2_video_predictor
 import os
 
-def detect_hands(image):
+def detect_hands(input_image):
     """
     PART 1: Detect hands in an image using MediaPipe
     """
@@ -18,7 +17,7 @@ def detect_hands(image):
     options = vision.HandLandmarkerOptions(base_options=base_options,
                                        num_hands=2)
     detector = vision.HandLandmarker.create_from_options(options)
-    image = mp.Image.create_from_file("image.jpg")
+    image = mp.Image.create_from_file(input_image)
     detection_result = detector.detect(image)
 
     hand_landmarks = []
@@ -45,8 +44,7 @@ def video2image(video_path):
         ret, frame = cap.read()
         if not ret:
             break
-
-        frame_filename = os.path.join(output_dir, f"frame_{frame_idx:04d}.jpg")
+        frame_filename = os.path.join(output_dir, f"{frame_idx:04d}.jpg")  # Remove "frame_" prefix
         cv2.imwrite(frame_filename, frame)
         frame_idx += 1
 
@@ -81,11 +79,11 @@ def track_hands(input_video_path, output_video_path):
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     video2image(input_video_path)
-    sam2_checkpoint = "../checkpoints/sam2.1_hiera_large.pt"
+    sam2_checkpoint = "/home/pa2497/sam2/checkpoints/sam2.1_hiera_large.pt"
     model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
     predictor = build_sam2_video_predictor(model_cfg, sam2_checkpoint, device=device)
 
-    video_name = os.path.splitext(os.path.basename(video_path))[0]
+    video_name = os.path.splitext(os.path.basename(input_video_path))[0]
     output_dir = os.path.join("video_as_image", video_name)
     video_dir = output_dir
 
