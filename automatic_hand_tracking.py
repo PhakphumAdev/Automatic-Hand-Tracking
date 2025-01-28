@@ -8,6 +8,8 @@ import torch
 import argparse
 from sam2.build_sam import build_sam2_video_predictor
 import os
+import matplotlib.pyplot as plt
+from PIL import Image
 
 def detect_hands(input_image):
     """
