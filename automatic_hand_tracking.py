@@ -75,9 +75,7 @@ def show_box(box, ax):
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0, 0, 0, 0), lw=2))
 
 def track_hands(input_video_path, output_video_path):
-    """
-    PART 2: Track hands in a video and overlay masks using SAM 2
-    """
+    """Process all frames and create output video"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     video2image(input_video_path)
     sam2_checkpoint = "/home/pa2497/sam2/checkpoints/sam2.1_hiera_large.pt"
@@ -85,61 +83,73 @@ def track_hands(input_video_path, output_video_path):
     predictor = build_sam2_video_predictor(model_cfg, sam2_checkpoint, device=device)
 
     video_name = os.path.splitext(os.path.basename(input_video_path))[0]
-    output_dir = os.path.join("video_as_image", video_name)
-    video_dir = output_dir
+    video_dir = os.path.join("video_as_image", video_name)
+    
+    # Get frame list and video properties
+    frame_names = sorted([p for p in os.listdir(video_dir) if p.lower().endswith((".jpg", ".jpeg"))],
+                         key=lambda p: int(os.path.splitext(p)[0]))
+    
+    # Get video properties from first frame
+    first_frame = cv2.imread(os.path.join(video_dir, frame_names[0]))
+    height, width = first_frame.shape[:2]
+    fps = 30  # Adjust based on input video if needed
+    
+    # Initialize video writer
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+    
+    # Create directory for masked frames
+    masked_dir = os.path.join(video_dir, "masked_frames")
+    os.makedirs(masked_dir, exist_ok=True)
 
-    # scan all the JPEG frame names in this directory
-    frame_names = [
-        p for p in os.listdir(video_dir)
-        if os.path.splitext(p)[-1] in [".jpg", ".jpeg", ".JPG", ".JPEG"]
-    ]
-    frame_names.sort(key=lambda p: int(os.path.splitext(p)[0]))
+    # Initialize SAM2 video state
     inference_state = predictor.init_state(video_path=video_dir)
 
-    # Process frame 0
-    frame_idx = 0
-    frame_path = os.path.join(video_dir, frame_names[frame_idx])
-
-    # Detect hands and get bounding boxes
-    num_hands, hand_boxes = detect_hands(frame_path)  # Shape: (num_hands, 4)
-
-    # Process each hand box separately
-    for hand_idx in range(num_hands):
-        box = hand_boxes[hand_idx].astype(np.float32)  # Single box [x1, y1, x2, y2]
+    # Process all frames sequentially
+    for frame_idx, frame_name in enumerate(frame_names):
+        frame_path = os.path.join(video_dir, frame_name)
+        frame = cv2.imread(frame_path)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
-        # Use unique obj_id for each hand (start from 1)
-        _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
-            inference_state=inference_state,
-            frame_idx=frame_idx,
-            obj_id=hand_idx+1,  # Unique ID for each hand
-            box=box  # Pass single box per call
-        )
+        # Detect hands for current frame
+        num_hands, hand_boxes = detect_hands(frame_path)
+        
+        # Process each hand in the frame
+        for hand_idx in range(num_hands):
+            box = hand_boxes[hand_idx].astype(np.float32)
+            
+            # Update SAM2 predictor with current hand box
+            _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
+                inference_state=inference_state,
+                frame_idx=frame_idx,
+                obj_id=hand_idx+1,  # Unique ID per hand
+                box=box
+            )
+        
+        # Create visualization
+        fig = plt.figure(figsize=(width/100, height/100), dpi=100)
+        plt.imshow(frame_rgb)
+        plt.axis('off')
+        
+        # Draw masks and boxes
+        for hand_idx in range(num_hands):
+            box = hand_boxes[hand_idx]
+            mask = (out_mask_logits[hand_idx] > 0.0).cpu().numpy()
+            show_box(box, plt.gca())
+            show_mask(mask, plt.gca(), obj_id=hand_idx+1)
+        
+        # Save masked frame
+        masked_path = os.path.join(masked_dir, f"{frame_idx:04d}.jpg")
+        plt.savefig(masked_path, bbox_inches='tight', pad_inches=0)
+        plt.close()
+        
+        # Add frame to video
+        masked_frame = cv2.imread(masked_path)
+        out_video.write(masked_frame)
+        print(f"Processed frame {frame_idx+1}/{len(frame_names)}")
 
-    # Visualization
-    plt.figure(figsize=(9, 6))
-    plt.title(f"frame {frame_idx}")
-    plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
-    
-    # Show all boxes and masks
-    for hand_idx in range(num_hands):
-        box = hand_boxes[hand_idx]
-        show_box(box, plt.gca())
-        show_mask((out_mask_logits[hand_idx] > 0.0).cpu().numpy(), 
-                 plt.gca(), obj_id=hand_idx+1)
-
-    plt.savefig("output.jpg")
-    plt.close()
-
-    # Visualize the results
-    #plt.figure(figsize=(9, 6))
-    #plt.title(f"Frame {frame_idx}")
-    #plt.imshow(Image.open(frame_path))
-    #show_points(points, labels, plt.gca())
-    #for i, out_obj_id in enumerate(out_obj_ids):
-    #    show_points(*prompts[out_obj_id], plt.gca())
-    #    show_mask((out_mask_logits[i] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_id)
-
-    #plt.show()
+    out_video.release()
+    print(f"Output video saved to {output_video_path}")
 
 def main():
     parser = argparse.ArgumentParser()
