@@ -14,7 +14,7 @@ height, width, _ = first_frame.shape
 
 # Define video writer object (MP4V codec for MP4)
 fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use 'XVID' or 'MJPG' for AVI
-fps = 1
+fps = 30
 
 out = cv2.VideoWriter(output_video, fourcc, fps, (width, height))
 
