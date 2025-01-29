@@ -88,7 +88,12 @@ def track_hands(input_video_path, output_video_path):
     # Get frame list and video properties
     frame_names = sorted([p for p in os.listdir(video_dir) if p.lower().endswith((".jpg", ".jpeg"))],
                          key=lambda p: int(os.path.splitext(p)[0]))
-        
+    # Get video properties from first frame
+    input_video = cv2.VideoCapture(input_video_path)
+    fps = 1
+    width = int(input_video.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(input_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    input_video.release()
     # Create directory for masked frames
     masked_dir = os.path.join(video_dir, "masked_frames")
     os.makedirs(masked_dir, exist_ok=True)
