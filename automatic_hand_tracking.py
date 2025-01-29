@@ -108,7 +108,7 @@ def track_hands(input_video_path, output_video_path):
         inference_state=inference_state,
         frame_idx=frame_idx,
         obj_id=num_hands,
-        boxes=hand_boxes.astype(np.float32)  # Use boxes instead of points
+        box=hand_boxes.astype(np.float32)  # Use boxes instead of points
     )
 
     # Update visualization to show boxes
