@@ -144,7 +144,7 @@ def track_hands(input_video_path, output_video_path):
     frames = sorted([f for f in os.listdir(masked_dir) if f.endswith(".jpg")])
 
     # Read the first frame to get dimensions
-    first_frame = cv2.imread(os.path.join(input_dir, frames[0]))
+    first_frame = cv2.imread(os.path.join(masked_dir, frames[0]))
     height, width, _ = first_frame.shape
 
     # Define video writer object (MP4V codec for MP4)
