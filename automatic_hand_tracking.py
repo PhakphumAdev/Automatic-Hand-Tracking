@@ -41,15 +41,16 @@ def get_hand_boxes(hand_landmarks, image_size):
     for hand in hand_landmarks:
         x_coords = hand[:, 0]
         y_coords = hand[:, 1]
+        # Return boxes in [x1, y1, x2, y2] format
         box = [
-            max(0, np.min(x_coords) - 15),  # x_min with padding
-            max(0, np.min(y_coords) - 15),  # y_min with padding
+            max(0, np.min(x_coords) - 15),  # x_min
+            max(0, np.min(y_coords) - 15),  # y_min
             min(image_size[0], np.max(x_coords) + 15),  # x_max
             min(image_size[1], np.max(y_coords) + 15)   # y_max
         ]
-        boxes.append(box)
-    return np.array(boxes)
-def video2image(video_path):
+        boxes.append(np.array(box, dtype=np.float32))  # Ensure float32
+    return boxes
+    def video2image(video_path):
     """
     Convert video to image frames and save them in a folder named after the video file
     """
