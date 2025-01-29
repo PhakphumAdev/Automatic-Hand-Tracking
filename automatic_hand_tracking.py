@@ -91,13 +91,13 @@ def track_hands(input_video_path, output_video_path):
     
     # Get video properties from first frame
     input_video = cv2.VideoCapture(input_video_path)
-    fps = input_video.get(cv2.CAP_PROP_FPS)
+    fps = 1
     width = int(input_video.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(input_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
     input_video.release()
 
     # Initialize video writer
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
     
     # Create directory for masked frames
