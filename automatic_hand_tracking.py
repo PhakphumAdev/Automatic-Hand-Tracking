@@ -12,30 +12,23 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 def detect_hands(input_image):
-    """
-    PART 1: Detect hands in an image using MediaPipe
-    """
+    """Detect hands and return bounding boxes instead of landmarks"""
     base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
-    options = vision.HandLandmarkerOptions(base_options=base_options,
-                                       num_hands=2)
+    options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
     detector = vision.HandLandmarker.create_from_options(options)
     image = mp.Image.create_from_file(input_image)
     detection_result = detector.detect(image)
 
-    # Load image and get dimensions
-    image = mp.Image.create_from_file(input_image)
-    image_width = image.width  # Get pixel width
-    image_height = image.height  # Get pixel height
-
-    # Convert normalized coordinates to pixel coordinates
-    hand_landmarks = []
+    # Get bounding boxes from landmarks
+    hand_boxes = []
     for hand in detection_result.hand_landmarks:
-        landmarks = np.array([[int(lm.x * image_width), int(lm.y * image_height)] for lm in hand])  # Ensure integer pixel coordinates
-        hand_landmarks.append(landmarks)
+        xs = [lm.x * image.width for lm in hand]
+        ys = [lm.y * image.height for lm in hand]
+        x_min, x_max = min(xs), max(xs)
+        y_min, y_max = min(ys), max(ys)
+        hand_boxes.append(np.array([x_min, y_min, x_max, y_max]))  # [x1, y1, x2, y2]
 
-    
-    num_hands = len(detection_result.hand_landmarks)
-    return num_hands, np.array(hand_landmarks)
+    return len(hand_boxes), np.array(hand_boxes)
 def video2image(video_path):
     """
     Convert video to image frames and save them in a folder named after the video file
@@ -108,35 +101,25 @@ def track_hands(input_video_path, output_video_path):
     frame_path = os.path.join(video_dir, frame_names[frame_idx])
     frame = cv2.imread(frame_path)
 
-    # Detect hands and refine the annotations for frame 0
-    num_hands, hand_landmarks = detect_hands(frame_path)  # hand_landmarks shape: (num_hands, 21, 2)
+    num_hands, hand_boxes = detect_hands(frame_path)  # Shape: (num_hands, 4)
 
-    # Reshape to [N, 2] where N = num_hands * 21
-    points = hand_landmarks.reshape(-1, 2).astype(np.float32)  # Shape: (num_hands * 21, 2)
-    labels = np.ones(points.shape[0], dtype=np.int32)  # Shape: (num_hands * 21,)
-
-    # (Optional) If you want per-hand interaction (e.g., track each hand separately):
-    prompts = {
-        i: (hand.astype(np.float32), np.ones(21, dtype=np.int32)) 
-        for i, hand in enumerate(hand_landmarks)
-    }
-
-    # Pass all points and labels to SAM
+    # Pass boxes to SAM instead of points
     _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
         inference_state=inference_state,
         frame_idx=frame_idx,
         obj_id=num_hands,
-        points=points,
-        labels=labels,
+        boxes=hand_boxes.astype(np.float32)  # Use boxes instead of points
     )
-    # show the results on the current (interacted) frame
+
+    # Update visualization to show boxes
     plt.figure(figsize=(9, 6))
     plt.title(f"frame {frame_idx}")
     plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
-    show_points(points, labels, plt.gca())
+    for box in hand_boxes:
+        show_box(box, plt.gca())  # Show bounding boxes
     show_mask((out_mask_logits[0] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_ids[0])
-    plt.savefig("output.jpg")  # JPEG
-    plt.close()  # Free memory by closing the figure
+    plt.savefig("output.jpg")
+    plt.close()
 
     # Visualize the results
     #plt.figure(figsize=(9, 6))
