@@ -36,6 +36,19 @@ def detect_hands(input_image):
     
     num_hands = len(detection_result.hand_landmarks)
     return num_hands, np.array(hand_landmarks)
+def get_hand_boxes(hand_landmarks, image_size):
+    boxes = []
+    for hand in hand_landmarks:
+        x_coords = hand[:, 0]
+        y_coords = hand[:, 1]
+        box = [
+            max(0, np.min(x_coords) - 15),  # x_min with padding
+            max(0, np.min(y_coords) - 15),  # y_min with padding
+            min(image_size[0], np.max(x_coords) + 15),  # x_max
+            min(image_size[1], np.max(y_coords) + 15)   # y_max
+        ]
+        boxes.append(box)
+    return np.array(boxes)
 def video2image(video_path):
     """
     Convert video to image frames and save them in a folder named after the video file
@@ -111,30 +124,38 @@ def track_hands(input_video_path, output_video_path):
     # Detect hands and refine the annotations for frame 0
     num_hands, hand_landmarks = detect_hands(frame_path)  # hand_landmarks shape: (num_hands, 21, 2)
 
+    # Get boxes instead of points
+    image_size = (image_height, image_width)
+    boxes = get_hand_boxes(hand_landmarks, image_size)
+
     # Reshape to [N, 2] where N = num_hands * 21
-    points = hand_landmarks.reshape(-1, 2).astype(np.float32)  # Shape: (num_hands * 21, 2)
-    labels = np.ones(points.shape[0], dtype=np.int32)  # Shape: (num_hands * 21,)
+    #points = hand_landmarks.reshape(-1, 2).astype(np.float32)  # Shape: (num_hands * 21, 2)
+    #labels = np.ones(points.shape[0], dtype=np.int32)  # Shape: (num_hands * 21,)
 
     # (Optional) If you want per-hand interaction (e.g., track each hand separately):
-    prompts = {
-        i: (hand.astype(np.float32), np.ones(21, dtype=np.int32)) 
-        for i, hand in enumerate(hand_landmarks)
-    }
+    #prompts = {
+    #    i: (hand.astype(np.float32), np.ones(21, dtype=np.int32)) 
+    #    for i, hand in enumerate(hand_landmarks)
+    #}
 
     # Pass all points and labels to SAM
     _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
         inference_state=inference_state,
         frame_idx=frame_idx,
         obj_id=num_hands,
-        points=points,
         labels=labels,
+        boxes=boxes,
     )
+
+    binary_mask = (out_mask_logits[0] > 0.5).cpu().numpy()
+    processed_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, np.ones((3,3)))
+
     # show the results on the current (interacted) frame
     plt.figure(figsize=(9, 6))
     plt.title(f"frame {frame_idx}")
     plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
     show_points(points, labels, plt.gca())
-    show_mask((out_mask_logits[0] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_ids[0])
+    show_mask(processed_mask, plt.gca(),alpha=0.5)
     plt.savefig("output.jpg")  # JPEG
     plt.close()  # Free memory by closing the figure
 
