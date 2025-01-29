@@ -13,6 +13,7 @@ from PIL import Image
 
 def detect_hands(input_image):
     """Detect hands and return bounding boxes instead of landmarks"""
+    #This code covers part 1
     base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
     options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
     detector = vision.HandLandmarker.create_from_options(options)
@@ -50,6 +51,10 @@ def video2image(video_path):
         frame_idx += 1
 
     cap.release()
+
+"""
+these three functions are used to visualize the output of SAM2
+"""
 def show_mask(mask, ax, obj_id=None, random_color=False):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
@@ -60,7 +65,6 @@ def show_mask(mask, ax, obj_id=None, random_color=False):
     h, w = mask.shape[-2:]
     mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
     ax.imshow(mask_image)
-
 
 def show_points(coords, labels, ax, marker_size=200):
     pos_points = coords[labels==1]
@@ -165,11 +169,15 @@ def track_hands(input_video_path, output_video_path):
     print(f"Video saved as {output_video_path}")
 
 def main():
+    # Create an argument parser to get input and output file paths from the command line
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_file_path')
-    parser.add_argument('output_file_path')
+    parser.add_argument('input_file_path', help="Path to the input video file")
+    parser.add_argument('output_file_path', help="Path to save the output video file")
 
+    # Parse the command line arguments
     args = parser.parse_args()
+
+    # Call the track_hands function with the provided input and output file paths
     track_hands(args.input_file_path, args.output_file_path)
 
 if __name__=="__main__":
