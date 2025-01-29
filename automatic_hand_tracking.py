@@ -135,8 +135,8 @@ def track_hands(input_video_path, output_video_path):
     plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
     show_points(points, labels, plt.gca())
     show_mask((out_mask_logits[0] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_ids[0])
-    plt.close()  # Free memory by closing the figure
     plt.savefig("output.jpg")  # JPEG
+    plt.close()  # Free memory by closing the figure
 
     # Visualize the results
     #plt.figure(figsize=(9, 6))
