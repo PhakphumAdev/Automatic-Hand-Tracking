@@ -147,7 +147,6 @@ def track_hands(input_video_path, output_video_path):
         print(f"Processed frame {frame_idx+1}/{len(frame_names)}")
 
     out_video.release()
-    cv2.destroyAllWindows()
     print(f"Output video saved to {output_video_path}")
 
 def main():
