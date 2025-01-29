@@ -92,7 +92,7 @@ def track_hands(input_video_path, output_video_path):
     # Get video properties from first frame
     first_frame = cv2.imread(os.path.join(video_dir, frame_names[0]))
     height, width = first_frame.shape[:2]
-    fps = 30  # Adjust based on input video if needed
+    fps = 1  # Adjust based on input video if needed
     
     # Initialize video writer
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
