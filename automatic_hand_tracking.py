@@ -95,7 +95,7 @@ def track_hands(input_video_path, output_video_path):
     fps = 1  # Adjust based on input video if needed
     
     # Initialize video writer
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
     
     # Create directory for masked frames
@@ -146,8 +146,8 @@ def track_hands(input_video_path, output_video_path):
         out_video.write(masked_frame)
         print(f"Processed frame {frame_idx+1}/{len(frame_names)}")
 
-    print(os.listdir(video_dir))  # Should list extracted frames
     out_video.release()
+    cv2.destroyAllWindows()
     print(f"Output video saved to {output_video_path}")
 
 def main():
