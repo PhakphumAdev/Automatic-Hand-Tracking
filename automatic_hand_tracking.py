@@ -148,7 +148,7 @@ def track_hands(input_video_path, output_video_path):
         frame_idx=frame_idx,
         obj_id=num_hands,
         #labels=labels,
-        boxes=boxes,
+        box=boxes,
     )
 
     binary_mask = (out_mask_logits[0] > 0.5).cpu().numpy()
