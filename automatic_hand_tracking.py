@@ -97,8 +97,8 @@ def track_hands(input_video_path, output_video_path):
     input_video.release()
 
     # Initialize video writer
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+    fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+    out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (640, 480))
     
     # Create directory for masked frames
     masked_dir = os.path.join(video_dir, "masked_frames")
