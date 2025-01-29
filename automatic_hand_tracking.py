@@ -90,12 +90,14 @@ def track_hands(input_video_path, output_video_path):
                          key=lambda p: int(os.path.splitext(p)[0]))
     
     # Get video properties from first frame
-    first_frame = cv2.imread(os.path.join(video_dir, frame_names[0]))
-    height, width = first_frame.shape[:2]
-    fps = 1  # Adjust based on input video if needed
-    
+    input_video = cv2.VideoCapture(input_video_path)
+    fps = input_video.get(cv2.CAP_PROP_FPS)
+    width = int(input_video.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(input_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    input_video.release()
+
     # Initialize video writer
-    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
     
     # Create directory for masked frames
