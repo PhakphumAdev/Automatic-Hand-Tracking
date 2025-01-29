@@ -125,6 +125,10 @@ def track_hands(input_video_path, output_video_path):
     num_hands, hand_landmarks = detect_hands(frame_path)  # hand_landmarks shape: (num_hands, 21, 2)
 
     # Get boxes instead of points
+    image = mp.Image.create_from_file(frame_names[frame_idx])
+    image_width = image.width  # Get pixel width
+    image_height = image.height  # Get pixel height
+
     image_size = (image_height, image_width)
     boxes = get_hand_boxes(hand_landmarks, image_size)
 
