@@ -147,7 +147,7 @@ def track_hands(input_video_path, output_video_path):
         inference_state=inference_state,
         frame_idx=frame_idx,
         obj_id=num_hands,
-        labels=labels,
+        #labels=labels,
         boxes=boxes,
     )
 
