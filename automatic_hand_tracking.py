@@ -50,7 +50,7 @@ def get_hand_boxes(hand_landmarks, image_size):
         ]
         boxes.append(np.array(box, dtype=np.float32))  # Ensure float32
     return boxes
-    def video2image(video_path):
+def video2image(video_path):
     """
     Convert video to image frames and save them in a folder named after the video file
     """
