@@ -11,5 +11,5 @@ pip install -r requirements.txt
 Then, run the following command in your terminal:
 
 ```bash
-python automatic_hand_tracking.py input.mp4 output.mp4
+python automatic_hand_tracking.py test.mp4 output.mp4
 ```
