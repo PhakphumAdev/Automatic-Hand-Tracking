@@ -142,8 +142,7 @@ def track_hands(input_video_path, output_video_path):
         masked_path = os.path.join(masked_dir, f"{frame_idx:04d}.jpg")
         plt.savefig(masked_path, bbox_inches='tight', pad_inches=0)
         plt.close()
-        print("Saved masked frame:", masked_path)
-        # Add frame to video
+        assert os.path.exists(masked_path), f"Masked frame not found: {masked_path}"      
         masked_frame = cv2.imread(masked_path)
         out_video.write(masked_frame)
         print(f"Processed frame {frame_idx+1}/{len(frame_names)}")
