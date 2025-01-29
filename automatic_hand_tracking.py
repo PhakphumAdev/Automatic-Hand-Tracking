@@ -151,6 +151,7 @@ def track_hands(input_video_path, output_video_path):
     out_video.release()
     print(f"Output video saved to {output_video_path}")
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file_path')
