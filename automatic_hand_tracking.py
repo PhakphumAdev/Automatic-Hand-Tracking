@@ -99,25 +99,34 @@ def track_hands(input_video_path, output_video_path):
     # Process frame 0
     frame_idx = 0
     frame_path = os.path.join(video_dir, frame_names[frame_idx])
-    frame = cv2.imread(frame_path)
 
+    # Detect hands and get bounding boxes
     num_hands, hand_boxes = detect_hands(frame_path)  # Shape: (num_hands, 4)
 
-    # Pass boxes to SAM instead of points
-    _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
-        inference_state=inference_state,
-        frame_idx=frame_idx,
-        obj_id=num_hands,
-        box=hand_boxes.astype(np.float32)  # Use boxes instead of points
-    )
+    # Process each hand box separately
+    for hand_idx in range(num_hands):
+        box = hand_boxes[hand_idx].astype(np.float32)  # Single box [x1, y1, x2, y2]
+        
+        # Use unique obj_id for each hand (start from 1)
+        _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
+            inference_state=inference_state,
+            frame_idx=frame_idx,
+            obj_id=hand_idx+1,  # Unique ID for each hand
+            box=box  # Pass single box per call
+        )
 
-    # Update visualization to show boxes
+    # Visualization
     plt.figure(figsize=(9, 6))
     plt.title(f"frame {frame_idx}")
     plt.imshow(Image.open(os.path.join(video_dir, frame_names[frame_idx])))
-    for box in hand_boxes:
-        show_box(box, plt.gca())  # Show bounding boxes
-    show_mask((out_mask_logits[0] > 0.0).cpu().numpy(), plt.gca(), obj_id=out_obj_ids[0])
+    
+    # Show all boxes and masks
+    for hand_idx in range(num_hands):
+        box = hand_boxes[hand_idx]
+        show_box(box, plt.gca())
+        show_mask((out_mask_logits[hand_idx] > 0.0).cpu().numpy(), 
+                 plt.gca(), obj_id=hand_idx+1)
+
     plt.savefig("output.jpg")
     plt.close()
 
