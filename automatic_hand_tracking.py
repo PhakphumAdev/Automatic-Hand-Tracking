@@ -88,18 +88,7 @@ def track_hands(input_video_path, output_video_path):
     # Get frame list and video properties
     frame_names = sorted([p for p in os.listdir(video_dir) if p.lower().endswith((".jpg", ".jpeg"))],
                          key=lambda p: int(os.path.splitext(p)[0]))
-    
-    # Get video properties from first frame
-    input_video = cv2.VideoCapture(input_video_path)
-    fps = 1
-    width = int(input_video.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(input_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    input_video.release()
-
-    # Initialize video writer
-    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
-    
+        
     # Create directory for masked frames
     masked_dir = os.path.join(video_dir, "masked_frames")
     os.makedirs(masked_dir, exist_ok=True)
@@ -145,12 +134,30 @@ def track_hands(input_video_path, output_video_path):
         plt.savefig(masked_path, bbox_inches='tight', pad_inches=0)
         plt.close()
         masked_frame = cv2.imread(masked_path)
-        out_video.write(masked_frame)
-        print(f"Processed frame {frame_idx+1}/{len(frame_names)}")
 
-    out_video.release()
-    print(f"Output video saved to {output_video_path}")
+    # Get list of image frames sorted in order
+    frames = sorted([f for f in os.listdir(masked_dir) if f.endswith(".jpg")])
 
+    # Read the first frame to get dimensions
+    first_frame = cv2.imread(os.path.join(input_dir, frames[0]))
+    height, width, _ = first_frame.shape
+
+    # Define video writer object (MP4V codec for MP4)
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use 'XVID' or 'MJPG' for AVI
+    fps = 30
+
+    out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    # Write frames into the video
+    for frame_name in frames:
+        frame_path = os.path.join(input_dir, frame_name)
+        frame = cv2.imread(frame_path)
+        out.write(frame)
+
+    # Release the video writer
+    out.release()
+
+    print(f"Video saved as {output_video_path}")
 
 def main():
     parser = argparse.ArgumentParser()
