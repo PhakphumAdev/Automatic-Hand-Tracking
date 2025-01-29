@@ -155,7 +155,7 @@ def track_hands(input_video_path, output_video_path):
 
     # Write frames into the video
     for frame_name in frames:
-        frame_path = os.path.join(input_dir, frame_name)
+        frame_path = os.path.join(masked_dir, frame_name)
         frame = cv2.imread(frame_path)
         out.write(frame)
 
